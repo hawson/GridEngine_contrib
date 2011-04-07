@@ -20,6 +20,7 @@
 #    along with GridGraph.  If not, see <http://www.gnu.org/licenses/>.
 #
 import os,datetime
+import math
 from xml.etree import ElementTree as ET
 
 # Determine how "hot" the node is and give it a color
@@ -30,13 +31,16 @@ def getTemp(node,hosts,maxslots):
 	clrRng = [ "#FF0006", "#FF0B05", "#FF1603", "#FE2102", "#FE2C00", "#FE2C00", "#FE5103", "#FD7606", "#FD9A08", "#FCBF0B", "#FCBF0B", "#FDC92C", "#FDD44D", "#FEDE6E", "#FEE88F", "#FEE88F", "#FEECA0", "#FFF1B1", "#FFF5C2", "#FFF9D3", "#FFF9D3", "#FFFADE", "#FFFAE9", "#FFFBF4", "#FFFBFF", "#FFFBFF", "#FDFAFF", "#FBF9FF", "#F8F8FF", "#F6F7FF", "#F6F7FF", "#F1F4FE", "#EDF1FE", "#E8EDFD", "#E3EAFC", "#E3EAFC", "#DDEAFC", "#D7EAFC", "#D0EAFB", "#CAEAFB", "#CAEAFB", "#C9E5FC", "#C9E0FD", "#C8DBFD", "#C7D6FE", "#C7D6FE", "#C5D6FE", "#C3D6FF", "#C0D5FF", "#BED5FF", "#BED5FF", "#B1CBFF", "#A5C1FF", "#98B7FF", "#8BADFF" ]
 
 	for host in hosts:
-		fqdn = node+".bos1.vrtx.com"
+		fqdn = node+".gc.nih.gov"
 		name = host.get('name')
 		if name == fqdn:
 			hostvalues = host.findall("hostvalue")
 			for value in hostvalues:
 				if value.get('name') == "load_avg":
-					load_avg = float(value.text)
+					if value.text == "-":
+						load_avg = -1;
+					else:
+						load_avg = float(value.text)
 
 	# load of 1.0 is really equal to unix load of max slots for the execution host
 	load = load_avg / maxslots
@@ -47,7 +51,7 @@ def getTemp(node,hosts,maxslots):
 	else:
 		x = 54
 
-	return clrRng[x]
+	return clrRng[54-x]
 
 # Process the jobs
 def doJobSlots(joblist,queue,nodename,qslots,hosts):
@@ -65,11 +69,11 @@ def doJobSlots(joblist,queue,nodename,qslots,hosts):
 
 	# change the edge and job color depending on which queue it is in
 	# edit this as desired to fit your queues
-	if queue == "high.q":
-		color="#DF00FF"
-	elif queue == "all.q":
-		color="#8C92AC"
-	elif queue == "low.q":
+	if queue == "low.q":
+		color="#e01010"
+	elif queue == "production.q":
+		color="#1000e0"
+	elif queue == "foozle.q":
 		color="#534B4F"
 	else:
 		color="#003399"
@@ -91,9 +95,9 @@ def doJobSlots(joblist,queue,nodename,qslots,hosts):
 
 	# Unfortunately, node names must start with a letter, so we have to add the "J" to the
 	# beginning of job node names.
-	print "\tJ"+jobNumber+" [style=filled,penwidth=8,label=\""+jobNumber+"\\n"+jobOwner+"\",shape=box,color=\""+color+"\",fontcolor=\"white\"];"
-	print "\t"+nodename+" [style=filled,penwidth=4,label=\""+label+"\",shape=polygon,regular=\"true\",sides=\""+qslots+"\",fillcolor=\""+temperature+"\",color=\"white\"];"
-	print "\tJ"+jobNumber+" -- "+nodename+" [penwidth=\""+str(slots)+"\",len=1.0,color=\""+color+"\"];"
+	print "\tJ"+jobNumber+" [style=filled,penwidth=8,label=\""+jobNumber+"\\n"+jobOwner+"\",shape=box,height=\""+str(math.sqrt(slots/2))+"\",width=\""+str(math.sqrt(slots/2))+"\",color=\""+color+"\",fontcolor=\"white\"];"
+	print "\t"  +nodename+" [style=filled,penwidth=4,label=\""+label+"\",shape=polygon,regular=\"true\",sides=\""+qslots+"\",fillcolor=\""+temperature+"\",color=\"white\"];"
+	print "\tJ"+jobNumber+" -- "+nodename+" [penwidth=\""+str(slots*2)+"\",len=1.0,color=\""+color+"\"];"
 
 # Process the XML and work through each queue's jobs
 def doQueues(queue,hosts):
@@ -140,14 +144,16 @@ def main():
 	print "\tbgcolor=\"black\";"
 	print "\tsplines=\"true\";"
 	print "\toverlap=\"false\";"
-	print "\tsize=\"13.0,9.75\";"
+	print "//\tsize=\"20.0,15.75\";"
 
 	# Print the time at the top of the graph so we know if it is updating properly.
 	now = datetime.datetime.today()
 	print "\tlabelloc=\"t\";"
+	print "\tlabelfontsize=48.0;"
 	print "\tlabel=\"HPC Cluster Activity - "+now.ctime()+"\";"
 	print "\tfontcolor=white;"
 	print "\tfontsize=24.0;"
+	print "\tresolution=36;"
 
 	qroot = qtree.getroot()
 	hroot = htree.getroot()
