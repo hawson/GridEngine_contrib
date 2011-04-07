@@ -30,8 +30,9 @@ def getTemp(node,hosts,maxslots):
 	# low load starts as dull red and heats up through orange, yellow, cyan, blue, etc.
 	clrRng = [ "#FF0006", "#FF0B05", "#FF1603", "#FE2102", "#FE2C00", "#FE2C00", "#FE5103", "#FD7606", "#FD9A08", "#FCBF0B", "#FCBF0B", "#FDC92C", "#FDD44D", "#FEDE6E", "#FEE88F", "#FEE88F", "#FEECA0", "#FFF1B1", "#FFF5C2", "#FFF9D3", "#FFF9D3", "#FFFADE", "#FFFAE9", "#FFFBF4", "#FFFBFF", "#FFFBFF", "#FDFAFF", "#FBF9FF", "#F8F8FF", "#F6F7FF", "#F6F7FF", "#F1F4FE", "#EDF1FE", "#E8EDFD", "#E3EAFC", "#E3EAFC", "#DDEAFC", "#D7EAFC", "#D0EAFB", "#CAEAFB", "#CAEAFB", "#C9E5FC", "#C9E0FD", "#C8DBFD", "#C7D6FE", "#C7D6FE", "#C5D6FE", "#C3D6FF", "#C0D5FF", "#BED5FF", "#BED5FF", "#B1CBFF", "#A5C1FF", "#98B7FF", "#8BADFF" ]
 
+	domain = str.strip(os.popen('/bin/dnsdomainname').read())
 	for host in hosts:
-		fqdn = node+".gc.nih.gov"
+		fqdn = node+"."+domain
 		name = host.get('name')
 		if name == fqdn:
 			hostvalues = host.findall("hostvalue")
